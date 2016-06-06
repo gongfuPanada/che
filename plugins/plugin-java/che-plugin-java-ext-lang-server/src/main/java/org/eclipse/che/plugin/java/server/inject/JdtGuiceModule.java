@@ -41,7 +41,6 @@ public class JdtGuiceModule extends AbstractModule {
 
     @Override
     protected void configure() {
-        bind(JavadocService.class);
         bind(JavaNavigationService.class);
         bind(JavaReconcileService.class);
         bind(CodeAssistService.class);

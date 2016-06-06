@@ -28,9 +28,9 @@ import org.eclipse.che.ide.util.loging.Log;
 public class QuickDocPresenter implements QuickDocumentation, QuickDocView.ActionDelegate {
 
 
-    private final QuickDocView       view;
-    private final AppContext         appContext;
-    private final EditorAgent        editorAgent;
+    protected final QuickDocView view;
+    protected final AppContext   appContext;
+    protected final EditorAgent  editorAgent;
 
     @Inject
     public QuickDocPresenter(QuickDocView view,

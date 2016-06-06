@@ -48,7 +48,7 @@ public class JavadocService {
         return new JavadocFinder(urlPart).findJavadoc4Handle(project, handle);
     }
 
-    private String getUrlPart(String projectPath, UriBuilder uriBuilder) {
+    protected String getUrlPart(String projectPath, UriBuilder uriBuilder) {
         return uriBuilder.clone().path(JavadocService.class).path(JavadocService.class, "get").build().toString() + "?projectpath=" + projectPath + "&handle=";
     }
 
