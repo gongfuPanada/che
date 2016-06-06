@@ -10,6 +10,9 @@
  *******************************************************************************/
 package org.eclipse.che.api.workspace.server;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+
 import org.eclipse.che.api.core.ConflictException;
 import org.eclipse.che.api.core.NotFoundException;
 import org.eclipse.che.api.core.model.workspace.WorkspaceConfig;
@@ -123,6 +126,67 @@ public class WorkspaceManagerTest {
                 return new SubjectImpl("Test User", USER_ID, "token", new ArrayList<>(), false);
             }
         });
+    }
+
+    @Test
+    public void should() throws Exception {
+        Gson gson = new GsonBuilder().create();
+
+        EnvironmentImpl env = new EnvironmentImpl("env1", "che", "12345");
+
+        System.out.println(gson.toJson(env));
+
+        final MachineConfigImpl devMachine = MachineConfigImpl.builder()
+                                                              .setDev(true)
+                                                              .setName("dev-machine")
+                                                              .setType("docker")
+                                                              .setSource(new MachineSourceImpl("location").setLocation("dockerfile"))
+                                                              .setServers(asList(new ServerConfImpl("ref1",
+                                                                                                    "8080",
+                                                                                                    "https",
+                                                                                                    "path1"),
+                                                                                 new ServerConfImpl("ref2",
+                                                                                                    "8081",
+                                                                                                    "https",
+                                                                                                    "path2")))
+                                                              .setEnvVariables(singletonMap("key1", "value1"))
+                                                              .build();
+
+        System.out.println(gson.toJson(devMachine));
+
+        String machine = "{" +
+                         "    \"isDev\":true," +
+                         "    \"name\":\"dev-machine\"," +
+                         "    \"type\":\"docker\"," +
+                         "    \"source\":{\"type\":\"location\"," +
+                         "        \"location\":\"dockerfile\"}," +
+                         "    \"limits\":{\"memory\":0}," +
+                         "    \"servers\":[" +
+                         "        {" +
+                         "            \"ref\":\"ref1\"," +
+                         "            \"port\":\"8080\"," +
+                         "            \"protocol\":\"https\"," +
+                         "            \"path\":\"path1\"" +
+                         "        }," +
+                         "        {" +
+                         "            \"ref\":\"ref2\"," +
+                         "            \"port\":\"8081\"," +
+                         "            \"protocol\":\"https\"," +
+                         "            \"path\":\"path2\"" +
+                         "        }" +
+                         "    ]," +
+                         "    \"envVariables\":{\"key1\":\"value1\"}" +
+                         "}";
+
+        String config = "[" + machine + "]";
+
+        String value = "{\"name\":\"env1\"," +
+                       "\"type\":\"che\"," +
+                       "\"config\":" + config + "}";
+
+        Object o = gson.fromJson(value, Object.class);
+
+        assertTrue(true);
     }
 
     @Test

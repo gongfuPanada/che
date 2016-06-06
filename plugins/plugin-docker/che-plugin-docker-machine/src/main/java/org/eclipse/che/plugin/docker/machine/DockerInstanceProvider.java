@@ -49,8 +49,11 @@ import org.eclipse.che.plugin.docker.client.json.container.NetworkingConfig;
 import org.eclipse.che.plugin.docker.client.json.network.EndpointConfig;
 import org.eclipse.che.plugin.docker.client.json.network.Network;
 import org.eclipse.che.plugin.docker.client.json.network.NewNetwork;
+import org.eclipse.che.plugin.docker.client.params.BuildImageParams;
+import org.eclipse.che.plugin.docker.client.params.CreateContainerParams;
 import org.eclipse.che.plugin.docker.client.params.PullParams;
 import org.eclipse.che.plugin.docker.client.params.RemoveImageParams;
+import org.eclipse.che.plugin.docker.client.params.StartContainerParams;
 import org.eclipse.che.plugin.docker.client.params.TagParams;
 import org.eclipse.che.plugin.docker.client.params.network.CreateNetworkParams;
 import org.eclipse.che.plugin.docker.client.params.network.GetNetworksParams;
@@ -327,7 +330,7 @@ public class DockerInstanceProvider implements InstanceProvider {
         }
         try {
             // remove unneeded tag
-            docker.removeImage(fullNameOfPulledImage, false);
+            docker.removeImage(fullNameOfPulledImage);
         } catch (IOException e) {
             LOG.error(e.getLocalizedMessage(), e);
         }
@@ -388,13 +391,12 @@ public class DockerInstanceProvider implements InstanceProvider {
                     LOG.error(e.getLocalizedMessage(), e);
                 }
             };
-            docker.buildImage(imageName,
-                              progressMonitor,
-                              null,
-                              doForcePullOnBuild,
-                              memoryLimit,
-                              memorySwapLimit,
-                              files.toArray(new File[files.size()]));
+            docker.buildImage(BuildImageParams.create(files.toArray(new File[files.size()]))
+                                              .withRepository(imageName)
+                                              .withDoForcePull(doForcePullOnBuild)
+                                              .withMemoryLimit(memoryLimit)
+                                              .withMemorySwapLimit(memorySwapLimit),
+                              progressMonitor);
         } catch (IOException | InterruptedException e) {
             throw new MachineException(e.getMessage(), e);
         } finally {
@@ -511,10 +513,12 @@ public class DockerInstanceProvider implements InstanceProvider {
             String networkName = machine.getWorkspaceId();
             createNetwork(networkName);
 
+            MachineConfig config = machine.getConfig();
+
             final Map<String, Map<String, String>> portsToExpose;
             final String[] volumes;
             final List<String> env;
-            if (machine.getConfig().isDev()) {
+            if (config.isDev()) {
                 portsToExpose = new HashMap<>(devMachinePortsToExpose);
 
                 final String projectFolderVolume = format("%s:%s:Z",
@@ -531,40 +535,52 @@ public class DockerInstanceProvider implements InstanceProvider {
                 volumes = commonMachineSystemVolumes;
                 env = new ArrayList<>(commonMachineEnvVariables);
             }
-            machine.getConfig()
-                   .getServers()
-                   .stream()
-                   .forEach(serverConf -> portsToExpose.put(serverConf.getPort(), Collections.emptyMap()));
+            config.getServers()
+                  .stream()
+                  .forEach(serverConf -> portsToExpose.put(serverConf.getPort(), Collections.emptyMap()));
 
-            machine.getConfig()
-                   .getEnvVariables()
-                   .entrySet()
-                   .stream()
-                   .map(entry -> entry.getKey() + "=" + entry.getValue())
-                   .forEach(env::add);
+            config.getEnvVariables()
+                  .entrySet()
+                  .stream()
+                  .map(entry -> entry.getKey() + "=" + entry.getValue())
+                  .forEach(env::add);
 
-            final NetworkingConfig networkingConfig = new NetworkingConfig().withEndpointsConfig(singletonMap(
-                    networkName, new EndpointConfig().withAliases(singletonList(machine.getConfig().getName()))));
+            final EndpointConfig endpointConfig = new EndpointConfig().withAliases(singletonList(config.getName()));
+            final NetworkingConfig networkingConfig = new NetworkingConfig().withEndpointsConfig(singletonMap(networkName,
+                                                                                                              endpointConfig));
+            // todo find ports that should not be exposed
+            // set publish all ports = true
+            // set port bindings for private ports to null
+            // Done
+
 
             final HostConfig hostConfig = new HostConfig().withBinds(volumes)
                                                           .withExtraHosts(allMachinesExtraHosts)
-                                                          .withPublishAllPorts(true)
-                                                          .withMemorySwap(-1)
-                                                          .withMemory((long)machine.getConfig().getLimits().getRam() * 1024 * 1024)
+                                                          .withPublishAllPorts(true)// todo expose only needed ports
+                                                          // set equal to memory to disable swap
+                                                          .withMemorySwap((long)config.getLimits().getRam() * 1024 * 1024)
+                                                          .withMemory((long)config.getLimits().getRam() * 1024 * 1024)
                                                           .withPrivileged(privilegeMode)
                                                           .withNetworkMode(networkName);
-            final ContainerConfig config = new ContainerConfig().withImage(imageName)
-                                                                .withExposedPorts(portsToExpose)
-                                                                .withHostConfig(hostConfig)
-                                                                .withEnv(env.toArray(new String[env.size()]))
-                                                                .withNetworkingConfig(networkingConfig);
+            final ContainerConfig containerConfig = new ContainerConfig().withImage(imageName)
+                                                                         .withExposedPorts(portsToExpose)
+                                                                         .withHostConfig(hostConfig)
+                                                                         .withEnv(env.toArray(new String[env.size()]))
+                                                                         .withNetworkingConfig(networkingConfig)
+                                                                         .withLabels(config.getLabels())
+                                                                         .withEntrypoint(config.getEntrypoint().toArray(
+                                                                                 new String[config.getEntrypoint().size()]))
+                                                                         .withCmd(config.getCommand()
+                                                                                        .toArray(new String[config.getCommand().size()]));
 
-            final String containerId = docker.createContainer(config, containerName).getId();
+            final String containerId = docker.createContainer(CreateContainerParams.create(containerConfig)
+                                                                                   .withContainerName(containerName))
+                                             .getId();
 
-            docker.startContainer(containerId, null);
+            docker.startContainer(StartContainerParams.create(containerId));
 
             final DockerNode node = dockerMachineFactory.createNode(machine.getWorkspaceId(), containerId);
-            if (machine.getConfig().isDev()) {
+            if (config.isDev()) {
                 node.bindWorkspace();
                 LOG.info("Machine with id '{}' backed by container '{}' has been deployed on node '{}'",
                          machine.getId(), containerId, node.getHost());

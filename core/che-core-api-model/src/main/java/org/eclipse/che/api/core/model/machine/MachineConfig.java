@@ -65,4 +65,27 @@ public interface MachineConfig {
      * Get predefined environment variables of machine.
      */
     Map<String, String> getEnvVariables();
+
+    // TODO how to handle shell and exec forms of command and entry point?
+
+
+    List<String> getEntrypoint();
+
+    List<String> getCommand();
+
+    // todo process links with depends on
+    // todo is it possible to combine links and depends on
+    List<String> getMachineLinks();
+
+    // todo declare servers using ports, deprecate servers entry?
+    // todo will we support not random ports?
+    List<String> getPorts();
+
+    //todo check how to prevent insertion labels that can broke docker/swarm or make them unsecure
+    Map<String, String> getLabels();
+
+    List<String> getExpose();
+
+    // todo do not use in hosted version
+    String getContainerName();
 }

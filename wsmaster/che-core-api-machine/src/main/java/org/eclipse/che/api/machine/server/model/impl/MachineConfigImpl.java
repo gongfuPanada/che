@@ -41,36 +41,32 @@ public class MachineConfigImpl implements MachineConfig {
     private List<ServerConfImpl> servers;
     private Map<String, String>  envVariables;
     private List<String>         dependsOn;
+    private List<String>         ports;
+    private List<String>         expose;
+    private List<String>         machineLinks;
+    private List<String>         entrypoint;
+    private List<String>         command;
+    private Map<String, String>  labels;
+    private String               containerName;
 
     public MachineConfigImpl() {}
 
-    public MachineConfigImpl(boolean isDev,
-                             String name,
-                             String type,
-                             MachineSource source,
-                             Limits limits,
-                             List<? extends ServerConf> servers,
-                             Map<String, String> envVariables,
-                             List<String> dependsOn) {
-        this.isDev = isDev;
-        this.name = name;
-        this.type = type;
-        this.envVariables = envVariables;
-        setServers(servers);
-        setSource(source);
-        setLimits(limits);
-        this.dependsOn = dependsOn;
-    }
-
     public MachineConfigImpl(MachineConfig machineCfg) {
-        this(machineCfg.isDev(),
-             machineCfg.getName(),
-             machineCfg.getType(),
-             machineCfg.getSource(),
-             machineCfg.getLimits(),
-             machineCfg.getServers(),
-             machineCfg.getEnvVariables(),
-             machineCfg.getDependsOn());
+        setDev(machineCfg.isDev());
+        setName(machineCfg.getName());
+        setType(machineCfg.getType());
+        setSource(machineCfg.getSource());
+        setLimits(machineCfg.getLimits());
+        setServers(machineCfg.getServers());
+        setEnvVariables(machineCfg.getEnvVariables());
+        setDependsOn(machineCfg.getDependsOn());
+        setCommand(machineCfg.getCommand());
+        setContainerName(machineCfg.getContainerName());
+        setEntrypoint(machineCfg.getEntrypoint());
+        setExpose(machineCfg.getExpose());
+        setLabels(machineCfg.getLabels());
+        setMachineLinks(machineCfg.getMachineLinks());
+        setPorts(machineCfg.getPorts());
     }
 
     @Override
@@ -161,32 +157,113 @@ public class MachineConfigImpl implements MachineConfig {
     }
 
     @Override
-    public boolean equals(Object obj) {
-        if (this == obj) return true;
-        if (!(obj instanceof MachineConfigImpl)) return false;
-        final MachineConfigImpl other = (MachineConfigImpl)obj;
-        return isDev == other.isDev &&
-               Objects.equals(name, other.name) &&
-               Objects.equals(source, other.source) &&
-               Objects.equals(limits, other.limits) &&
-               Objects.equals(type, other.type) &&
-               Objects.equals(getServers(), other.getServers()) &&
-               Objects.equals(getEnvVariables(), other.getEnvVariables()) &&
-               Objects.equals(getDependsOn(), other.getDependsOn());
+    public List<String> getEntrypoint() {
+        if (entrypoint == null) {
+            entrypoint = new ArrayList<>();
+        }
+        return entrypoint;
+    }
+
+    public void setEntrypoint(List<String> entrypoint) {
+        this.entrypoint = entrypoint;
+    }
+
+    @Override
+    public String getContainerName() {
+        return containerName;
+    }
+
+    public void setContainerName(String containerName) {
+        this.containerName = containerName;
+    }
+
+    @Override
+    public Map<String, String> getLabels() {
+        if (labels == null) {
+            labels = new HashMap<>();
+        }
+        return labels;
+    }
+
+    public void setLabels(Map<String, String> labels) {
+        this.labels = labels;
+    }
+
+    @Override
+    public List<String> getPorts() {
+        if (ports == null) {
+            ports = new ArrayList<>();
+        }
+        return ports;
+    }
+
+    public void setPorts(List<String> ports) {
+        this.ports = ports;
+    }
+
+    @Override
+    public List<String> getCommand() {
+        if (command == null) {
+            command = new ArrayList<>();
+        }
+        return command;
+    }
+
+    public void setCommand(List<String> command) {
+        this.command = command;
+    }
+
+    @Override
+    public List<String> getExpose() {
+        if (expose == null) {
+            expose = new ArrayList<>();
+        }
+        return expose;
+    }
+
+    public void setExpose(List<String> expose) {
+        this.expose = expose;
+    }
+
+    @Override
+    public List<String> getMachineLinks() {
+        if (machineLinks == null) {
+            machineLinks = new ArrayList<>();
+        }
+        return machineLinks;
+    }
+
+    public void setMachineLinks(List<String> machineLinks) {
+        this.machineLinks = machineLinks;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof MachineConfigImpl)) return false;
+        MachineConfigImpl that = (MachineConfigImpl)o;
+        return isDev == that.isDev &&
+               Objects.equals(name, that.name) &&
+               Objects.equals(type, that.type) &&
+               Objects.equals(source, that.source) &&
+               Objects.equals(limits, that.limits) &&
+               Objects.equals(servers, that.servers) &&
+               Objects.equals(envVariables, that.envVariables) &&
+               Objects.equals(dependsOn, that.dependsOn) &&
+               Objects.equals(ports, that.ports) &&
+               Objects.equals(expose, that.expose) &&
+               Objects.equals(machineLinks, that.machineLinks) &&
+               Objects.equals(entrypoint, that.entrypoint) &&
+               Objects.equals(command, that.command) &&
+               Objects.equals(labels, that.labels) &&
+               Objects.equals(containerName, that.containerName);
     }
 
     @Override
     public int hashCode() {
-        int hash = 7;
-        hash = hash * 31 + Boolean.hashCode(isDev);
-        hash = hash * 31 + Objects.hashCode(name);
-        hash = hash * 31 + Objects.hashCode(type);
-        hash = hash * 31 + Objects.hashCode(source);
-        hash = hash * 31 + Objects.hashCode(limits);
-        hash = hash * 31 + Objects.hashCode(getServers());
-        hash = hash * 31 + Objects.hashCode(getEnvVariables());
-        hash = hash * 31 + Objects.hashCode(getDependsOn());
-        return hash;
+        return Objects
+                .hash(isDev, name, type, source, limits, servers, envVariables, dependsOn, ports, expose, machineLinks, entrypoint, command,
+                      labels, containerName);
     }
 
     @Override
@@ -197,9 +274,16 @@ public class MachineConfigImpl implements MachineConfig {
                ", type='" + type + '\'' +
                ", source=" + source +
                ", limits=" + limits +
-               ", servers=" + getServers() +
-               ", envVariables=" + getEnvVariables() +
-               ", dependsOn=" + getDependsOn() +
+               ", servers=" + servers +
+               ", envVariables=" + envVariables +
+               ", dependsOn=" + dependsOn +
+               ", ports=" + ports +
+               ", expose=" + expose +
+               ", machineLinks=" + machineLinks +
+               ", entrypoint=" + entrypoint +
+               ", command=" + command +
+               ", labels=" + labels +
+               ", containerName='" + containerName + '\'' +
                '}';
     }
 
@@ -218,16 +302,32 @@ public class MachineConfigImpl implements MachineConfig {
         private List<? extends ServerConf> servers;
         private Map<String, String>        envVariables;
         private List<String>               dependsOn;
+        private List<String>               ports;
+        private List<String>               expose;
+        private List<String>               machineLinks;
+        private List<String>               entrypoint;
+        private List<String>               command;
+        private Map<String, String>        labels;
+        private String                     containerName;
 
         public MachineConfigImpl build() {
-            return new MachineConfigImpl(isDev,
-                                         name,
-                                         type,
-                                         source,
-                                         limits,
-                                         servers,
-                                         envVariables,
-                                         dependsOn);
+            MachineConfigImpl config = new MachineConfigImpl();
+            config.setDev(isDev);
+            config.setName(name);
+            config.setType(type);
+            config.setSource(source);
+            config.setLimits(limits);
+            config.setServers(servers);
+            config.setEnvVariables(envVariables);
+            config.setDependsOn(dependsOn);
+            config.setCommand(command);
+            config.setContainerName(containerName);
+            config.setEntrypoint(entrypoint);
+            config.setExpose(expose);
+            config.setLabels(labels);
+            config.setMachineLinks(machineLinks);
+            config.setPorts(ports);
+            return config;
         }
 
         public MachineConfigImplBuilder fromConfig(MachineConfig machineConfig) {
@@ -279,6 +379,41 @@ public class MachineConfigImpl implements MachineConfig {
 
         public MachineConfigImplBuilder setDependsOn(List<String> dependsOn) {
             this.dependsOn = dependsOn;
+            return this;
+        }
+
+        public MachineConfigImplBuilder setPorts(List<String> ports) {
+            this.ports = ports;
+            return this;
+        }
+
+        public MachineConfigImplBuilder setMachineLinks(List<String> machineLinks) {
+            this.machineLinks = machineLinks;
+            return this;
+        }
+
+        public MachineConfigImplBuilder setExpose(List<String> expose) {
+            this.expose = expose;
+            return this;
+        }
+
+        public MachineConfigImplBuilder setLabels(Map<String, String> labels) {
+            this.labels = labels;
+            return this;
+        }
+
+        public MachineConfigImplBuilder setContainerName(String containerName) {
+            this.containerName = containerName;
+            return this;
+        }
+
+        public MachineConfigImplBuilder setCommand(List<String> command) {
+            this.command = command;
+            return this;
+        }
+
+        public MachineConfigImplBuilder setEntrypoint(List<String> entrypoint) {
+            this.entrypoint = entrypoint;
             return this;
         }
     }
