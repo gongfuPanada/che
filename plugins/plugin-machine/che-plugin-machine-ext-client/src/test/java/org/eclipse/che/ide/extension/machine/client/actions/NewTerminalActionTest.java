@@ -34,12 +34,7 @@ import static org.mockito.Mockito.when;
  */
 @RunWith(GwtMockitoTestRunner.class)
 public class NewTerminalActionTest {
-    private static final String MACHINE_ID = "machineID";
 
-    @Mock
-    private AppContext                  appContext;
-    @Mock
-    private DevMachine                  devMachine;
     @Mock
     private WorkspaceAgent              workspaceAgent;
     @Mock
@@ -61,34 +56,10 @@ public class NewTerminalActionTest {
 
     @Test
     public void actionShouldBePerformed() throws Exception {
-        when(appContext.getDevMachine()).thenReturn(devMachine);
-        when(devMachine.getId()).thenReturn(MACHINE_ID);
-
         action.actionPerformed(actionEvent);
 
-        verify(appContext).getDevMachine();
-        verify(consolesPanelPresenter).onAddTerminal(eq(MACHINE_ID));
+        verify(consolesPanelPresenter).newTerminal();
         verify(workspaceAgent).setActivePart(eq(consolesPanelPresenter));
     }
 
-    @Test
-    public void actionShouldBeEnabledWhenDevMachineIsNotNull() throws Exception {
-        when(appContext.getDevMachine()).thenReturn(devMachine);
-
-        action.updateInPerspective(actionEvent);
-
-        verify(actionEvent.getPresentation()).setEnabled(eq(true));
-    }
-
-    @Test
-    public void actionShouldBeDisabledWhenDevMachineIsNull() throws Exception {
-        when(appContext.getDevMachine()).thenReturn(null);
-
-        action.updateInPerspective(actionEvent);
-
-        verify(actionEvent.getPresentation()).setEnabled(eq(false));
-
-        verify(consolesPanelPresenter, never()).onAddTerminal(eq(MACHINE_ID));
-        verify(workspaceAgent, never()).setActivePart(eq(consolesPanelPresenter));
-    }
 }
