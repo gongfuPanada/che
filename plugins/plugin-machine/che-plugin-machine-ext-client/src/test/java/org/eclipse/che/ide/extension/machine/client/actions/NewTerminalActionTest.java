@@ -17,6 +17,7 @@ import org.eclipse.che.ide.api.action.ActionEvent;
 import org.eclipse.che.ide.api.app.AppContext;
 import org.eclipse.che.ide.api.parts.WorkspaceAgent;
 import org.eclipse.che.ide.extension.machine.client.MachineLocalizationConstant;
+import org.eclipse.che.ide.extension.machine.client.MachineResources;
 import org.eclipse.che.ide.extension.machine.client.processes.ConsolesPanelPresenter;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -36,11 +37,12 @@ import static org.mockito.Mockito.when;
 public class NewTerminalActionTest {
 
     @Mock
-    private WorkspaceAgent              workspaceAgent;
-    @Mock
     private ConsolesPanelPresenter      consolesPanelPresenter;
     @Mock
     private MachineLocalizationConstant locale;
+    @Mock
+    private MachineResources resources;
+
 
     @Mock(answer = RETURNS_DEEP_STUBS)
     private ActionEvent actionEvent;
@@ -50,7 +52,7 @@ public class NewTerminalActionTest {
 
     @Test
     public void constructorShouldBeVerified() {
-        verify(locale).newTerminalTitle();
+        verify(locale).newTerminal();
         verify(locale).newTerminalDescription();
     }
 
@@ -59,7 +61,6 @@ public class NewTerminalActionTest {
         action.actionPerformed(actionEvent);
 
         verify(consolesPanelPresenter).newTerminal();
-        verify(workspaceAgent).setActivePart(eq(consolesPanelPresenter));
     }
 
 }

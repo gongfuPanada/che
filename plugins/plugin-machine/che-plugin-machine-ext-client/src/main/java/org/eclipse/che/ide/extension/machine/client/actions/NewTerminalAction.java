@@ -12,6 +12,7 @@ package org.eclipse.che.ide.extension.machine.client.actions;
 
 import com.google.inject.Inject;
 
+import com.google.inject.Singleton;
 import org.eclipse.che.ide.api.action.AbstractPerspectiveAction;
 import org.eclipse.che.ide.api.action.ActionEvent;
 import org.eclipse.che.ide.extension.machine.client.MachineLocalizationConstant;
@@ -28,6 +29,7 @@ import static org.eclipse.che.ide.workspace.perspectives.project.ProjectPerspect
  *
  * @author Vitaliy Guliy
  */
+@Singleton
 public class NewTerminalAction extends AbstractPerspectiveAction {
 
     private final ConsolesPanelPresenter consolesPanelPresenter;
@@ -54,4 +56,5 @@ public class NewTerminalAction extends AbstractPerspectiveAction {
     public void actionPerformed(@NotNull ActionEvent event) {
         consolesPanelPresenter.newTerminal();
     }
+
 }

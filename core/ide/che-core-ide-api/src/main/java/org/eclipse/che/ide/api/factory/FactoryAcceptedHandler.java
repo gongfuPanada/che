@@ -8,22 +8,22 @@
  * Contributors:
  *   Codenvy, S.A. - initial API and implementation
  *******************************************************************************/
-package org.eclipse.che.plugin.gdb.server.parser;
+package org.eclipse.che.ide.api.factory;
 
-import static java.lang.Math.min;
+import com.google.gwt.event.shared.EventHandler;
 
 /**
- * @author Anatoliy Bazko
+ * Handler for FactoryAcceptedEvent.
+ * You can use this handler in case need to do some action on after accepting factory
+ *
+ * @author Vitalii Parfonov
  */
-@SuppressWarnings("serial")
-public class GdbParseException extends Exception {
+public interface FactoryAcceptedHandler extends EventHandler {
 
-    public static final int MAX_OUTPUT_LENGTH = 80;
-
-    public GdbParseException(Class clazz, String output) {
-        super("Can't parse '"
-              + output.substring(0, min(output.length(), MAX_OUTPUT_LENGTH))
-              + "' into "
-              + clazz.getSimpleName());
-    }
+    /**
+     * Will be called the factory accepted on IDE side.
+     * Project already imported, actions performed.
+     * @param event
+     */
+    void onFactoryAccepted(FactoryAcceptedEvent event);
 }
