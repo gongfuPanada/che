@@ -53,10 +53,12 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static javax.ws.rs.core.MediaType.APPLICATION_FORM_URLENCODED;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
+import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 import static javax.ws.rs.core.Response.Status.CREATED;
 import static javax.ws.rs.core.Response.status;
 import static org.eclipse.che.api.user.server.Constants.LINK_REL_CREATE_USER;
@@ -161,6 +163,9 @@ public class UserService extends Service {
         }
 
         final User user = context.isUserInRole("system/admin") ? fromEntity(userDescriptor) : fromToken(token);
+        if (isValidUserName(user.getName())) {
+            throw new BadRequestException("Username must contain only letters and digits");
+        }
         userManager.create(user, isTemporary);
         return status(CREATED).entity(injectLinks(toDescriptor(user), getServiceContext())).build();
     }
@@ -427,6 +432,10 @@ public class UserService extends Service {
     @Produces(APPLICATION_JSON)
     public Map<String, String> getSettings() {
         return ImmutableMap.of(USER_SELF_CREATION_ALLOWED, Boolean.toString(userSelfCreationAllowed));
+    }
+
+    private boolean isValidUserName(String name) {
+        return Pattern.matches("^[a-zA-Z0-9]*$", name);
     }
 
     private User fromEntity(UserDescriptor userDescriptor) throws BadRequestException {
